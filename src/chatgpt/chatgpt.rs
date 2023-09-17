@@ -1,13 +1,20 @@
+use std::env;
+
 use reqwest::blocking::Client;
 use serde::{Serialize, Deserialize};
 use serde_json::Value;
-use rust_tokenizers::tokenizer::{Tokenizer, TruncationStrategy, Gpt2Tokenizer};
+use rust_tokenizers::{tokenizer::{Tokenizer, TruncationStrategy, Gpt2Tokenizer}, vocab};
 
-use crate::{utils::CHATGPT_MODEL, Functions, Message, GptResult};
+use crate::{Functions, Message, GptResult, Config};
 
 lazy_static! {
-    pub static ref tokenizer: Gpt2Tokenizer = Gpt2Tokenizer::from_file("p:/pai/config/vocab.json", "p:/pai/config/merges.txt", true)
-        .expect("Failed to create tokenizer");
+    pub static ref tokenizer: Gpt2Tokenizer = {
+        let path = env::current_exe().unwrap().parent().unwrap().join("config");
+        let vocab = path.join("vocab.json");
+        let merges = path.join("merges.txt");
+        Gpt2Tokenizer::from_file(vocab, merges, true)
+        .expect("Failed to create tokenizer")
+    };
 }
 
 fn count_tokens(prompt: &str) -> usize {
@@ -19,6 +26,7 @@ fn count_tokens(prompt: &str) -> usize {
 
 pub struct ChatGPT {
     apikey: String,
+    model: String,
     client: Client,
 }
 
@@ -58,16 +66,21 @@ struct ChatOutput {
 }
 
 impl ChatGPT {
-    pub fn new(apikey: String) -> Self {
-        Self {
-            apikey,
-            client: Client::new(),
+    pub fn new(config: Config) -> Option<Self> {
+        if let Some(apikey) = config.openai_key {
+            Some(Self {
+                apikey,
+                model: config.gpt_model,
+                client: Client::new(),
+            })
+        } else {
+            None
         }
     }
 
     pub fn send(&self, mut messages: Vec<Message>, functions: Option<Functions>) -> GptResult<Option<String>> {
         let input = serde_json::to_string(&ChatInput {
-            model: CHATGPT_MODEL.to_owned(),
+            model: self.model.to_owned(),
             max_tokens: None,
             messages: messages.to_owned(),
             functions: functions.to_owned().map(|f| f.functions()),
@@ -76,7 +89,7 @@ impl ChatGPT {
         let tokens = count_tokens(&input);
         
         let input = serde_json::to_string(&ChatInput {
-            model: CHATGPT_MODEL.to_owned(),
+            model: self.model.to_owned(),
             max_tokens: Some(4000 - tokens as u32),
             messages: messages.to_owned(),
             functions: functions.to_owned().map(|f| f.functions()),
