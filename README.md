@@ -32,7 +32,7 @@ pai -d add to main file route for ...
 
 # Install
 ```shell
-git clone https://github.com/binqbit/pai.git
+git clone http://github.com/binqbit/pai.git
 cd pai
 cargo build --release
 
