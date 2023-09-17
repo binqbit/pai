@@ -16,7 +16,7 @@ pub fn run_commands(commands: Vec<String>) {
 
                 let status = child.wait().expect("Failed to wait for command");
 
-                if let (false, Some(code)) = (!status.success(), status.code()) {
+                if let (false, Some(code)) = (status.success(), status.code()) {
                     eprintln!("{}", colorize_logs(&format!("status code error: {code}")));
                 }
         }
