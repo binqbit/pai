@@ -1,4 +1,4 @@
-# pai
+# PackageAI
 
 ## pai is package manager with ai
 
