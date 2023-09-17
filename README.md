@@ -29,3 +29,26 @@ pai --version
 [-d] - show show directory folders
 pai -d add to main file route for ...
 ```
+
+# Install
+```shell
+git clone https://github.com/binqbit/pai.git
+cd pai
+cargo build --release
+
+# liunx
+mkdir build
+mkdir build/config
+cp target/release/pai build/pai
+cp config/vocab.json build/config/vocab.json
+cp config/merges.txt build/config/merges.txt
+export PATH=$PATH:$(pwd)/build
+
+# windows
+mkdir build
+mkdir build/config
+copy target/release/pai.exe build/pai.exe
+copy config/vocab.json build/config/vocab.json
+copy config/merges.txt build/config/merges.txt
+set PATH=%PATH%;%cd%/build
+```
