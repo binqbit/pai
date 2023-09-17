@@ -4,9 +4,11 @@ extern crate lazy_static;
 
 pub mod chatgpt;
 pub mod pai;
+pub mod variables;
 
 pub use chatgpt::*;
 pub use pai::*;
+pub use variables::*;
 
 fn main() {
     if let Some(mut config) = Config::load() {
@@ -25,7 +27,7 @@ fn main() {
                 let model = args.next().expect("Missing gpt model");
                 config.set_gpt_model(model);
             } else if (arg == "--version" || arg == "-v") && is_flags {
-                println!("version: v0.1.0");
+                println!("version: {}", PAI_VERSION);
                 println!("gpt model: {}", config.gpt_model);
                 return;
             } else if (arg == "--help" || arg == "-h") && is_flags {

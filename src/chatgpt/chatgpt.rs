@@ -1,15 +1,13 @@
-use std::env;
-
 use reqwest::blocking::Client;
 use serde::{Serialize, Deserialize};
 use serde_json::Value;
-use rust_tokenizers::{tokenizer::{Tokenizer, TruncationStrategy, Gpt2Tokenizer}, vocab};
+use rust_tokenizers::tokenizer::{Tokenizer, TruncationStrategy, Gpt2Tokenizer};
 
-use crate::{Functions, Message, GptResult, Config};
+use crate::{Functions, Message, GptResult, Config, get_exec_path};
 
 lazy_static! {
-    pub static ref tokenizer: Gpt2Tokenizer = {
-        let path = env::current_exe().unwrap().parent().unwrap().join("config");
+    pub static ref TOKENIZER: Gpt2Tokenizer = {
+        let path = get_exec_path().join("config");
         let vocab = path.join("vocab.json");
         let merges = path.join("merges.txt");
         Gpt2Tokenizer::from_file(vocab, merges, true)
@@ -18,7 +16,7 @@ lazy_static! {
 }
 
 fn count_tokens(prompt: &str) -> usize {
-    let encoding = tokenizer.encode(prompt, None, 3000, &TruncationStrategy::LongestFirst, 2);
+    let encoding = TOKENIZER.encode(prompt, None, 3000, &TruncationStrategy::LongestFirst, 2);
     encoding.token_ids.len()
 }
 
@@ -137,17 +135,17 @@ impl ChatOutput {
         None
     }
 
-    fn json<T>(&self) -> Option<T>
-    where
-        T: serde::de::DeserializeOwned,
-     {
-        if let Some(text) = self.text() {
-            if let Ok(json) = serde_json::from_str(&text) {
-                return Some(json);
-            }
-        }
-        None
-    }
+    // fn json<T>(&self) -> Option<T>
+    // where
+    //     T: serde::de::DeserializeOwned,
+    //  {
+    //     if let Some(text) = self.text() {
+    //         if let Ok(json) = serde_json::from_str(&text) {
+    //             return Some(json);
+    //         }
+    //     }
+    //     None
+    // }
 
     fn function(&self) -> Option<FunctionInput> {
         if let Some(message) = self.message() {

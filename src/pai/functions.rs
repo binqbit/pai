@@ -25,7 +25,7 @@ lazy_static! {
                 "required": ["commands"],
             },
         }),
-        |gpt: &ChatGPT, values: HashMap<String, Value>| {
+        |_gpt: &ChatGPT, values: HashMap<String, Value>| {
             let commands = values.get("commands")
                 .unwrap()
                 .as_array()
@@ -57,7 +57,7 @@ lazy_static! {
                 "required": ["texts"],
             },
         }),
-        |gpt: &ChatGPT, values: HashMap<String, Value>| {
+        |_gpt: &ChatGPT, values: HashMap<String, Value>| {
             let texts = values.get("texts")
                 .unwrap()
                 .as_array()
@@ -89,7 +89,7 @@ lazy_static! {
                 "description": "The contents of the file to create, e.g. Hello, world!",
             }
         }),
-        |gpt: &ChatGPT, values: HashMap<String, Value>| {
+        |_gpt: &ChatGPT, values: HashMap<String, Value>| {
             let name = values.get("name")
                 .unwrap()
                 .as_str()
@@ -118,7 +118,7 @@ lazy_static! {
                 "required": ["name", "content"],
             }
         }),
-        |gpt: &ChatGPT, values: HashMap<String, Value>| {
+        |_gpt: &ChatGPT, values: HashMap<String, Value>| {
             let name = values.get("name")
                 .unwrap()
                 .as_str()
@@ -157,7 +157,7 @@ lazy_static! {
                 "description": "The edited text, e.g. Hello, world!\nAdd a new line at the end of the text",
             },
         }),
-        |gpt: &ChatGPT, values: HashMap<String, Value>| {
+        |_gpt: &ChatGPT, values: HashMap<String, Value>| {
             let text = values.get("text")
                 .unwrap()
                 .as_str()
@@ -168,7 +168,7 @@ lazy_static! {
                 .as_str()
                 .unwrap()
                 .to_owned();
-            if let Some(res) = edit_text(gpt, text, description) {
+            if let Some(res) = edit_text(_gpt, text, description) {
                 return Some(Value::String(res));
             } else {
                 return None;
@@ -198,7 +198,7 @@ lazy_static! {
                 },
             },
         }),
-        |gpt: &ChatGPT, values: HashMap<String, Value>| {
+        |_gpt: &ChatGPT, values: HashMap<String, Value>| {
             let path = values.get("path")
                 .unwrap()
                 .as_str()
