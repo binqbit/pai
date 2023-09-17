@@ -17,7 +17,7 @@ pub fn run_commands(commands: Vec<String>) {
                 let status = child.wait().expect("Failed to wait for command");
 
                 if let (false, Some(code)) = (!status.success(), status.code()) {
-                    eprintln!("status code error: {code}");
+                    eprintln!("{}", colorize_logs(&format!("status code error: {code}")));
                 }
         }
     });
@@ -28,9 +28,8 @@ pub fn run_commands(commands: Vec<String>) {
 
 pub fn print_text(texts: Vec<String>) {
     if texts.len() == 1 {
-        println!("> print: {}", colorize_logs(&texts[0]));
+        println!("{}", colorize_logs(&texts[0]));
     } else if texts.len() > 1 {
-        println!("> print:");
         for text in texts {
             println!("{}", colorize_logs(&text));
         }
@@ -38,7 +37,7 @@ pub fn print_text(texts: Vec<String>) {
 }
 
 pub fn read_file(name: String) -> String {
-    println!("> read_file: {}", name);
+    println!("> read_file: {}", colorize_logs(&name));
     let contents = std::fs::read_to_string(name)
         .expect("Something went wrong reading the file");
     contents
@@ -58,36 +57,31 @@ pub fn edit_text(gpt: &ChatGPT, text: String, description: String) -> Option<Str
     ];
 
     match gpt.send(messages, None) {
-        Ok(Some(res)) => {
+        Ok(res) => {
+            let res = res.expect("Failed to get response");
             if let (Some(start), Some(end)) = (res.find("```"), res.rfind("```")) {
                 let res = res[start..end].to_string();
                 if let Some(start) = res.find("\n") {
                     return Some(res[start..end].to_string());
                 }
             }
-        },
-        Ok(None) => {
-            println!("edit_text: None");
+            panic!("Failed to get response");
         },
         Err(err) => {
-            println!("error: {}", err);
+            println!("{}", colorize_logs(&err.to_string()));
+            panic!("Failed to get response");
         },
     }
-
-    None
 }
 
 pub fn list_dirs(path: String) -> Vec<String> {
-    println!("> list_dirs: {}", path);
-    if let Ok(paths) = std::fs::read_dir(std::env::current_dir().unwrap()) {
-        let list = paths.collect::<Vec<_>>()
-            .iter()
-            .map(|path| path.as_ref().unwrap().path().display().to_string())
-            .collect::<Vec<_>>();
-        return list;
-    } else {
-        return vec![];
-    }
+    println!("> list_dirs: {}", colorize_logs(&path));
+    std::fs::read_dir(path)
+        .expect("Failed to read directory")
+        .collect::<Vec<_>>()
+        .iter()
+        .map(|path| path.as_ref().unwrap().path().display().to_string())
+        .collect::<Vec<_>>()
 }
 
 pub fn pai_run(gpt: &ChatGPT, task: String, flags: Vec<String>) {
@@ -98,9 +92,9 @@ pub fn pai_run(gpt: &ChatGPT, task: String, flags: Vec<String>) {
     ];
 
     if flags.contains(&String::from("-d")) {
-        let list = list_dirs(std::env::current_dir().unwrap().to_str().unwrap().to_string())
-            .join(", ");
-        messages.push(Message::new(String::from("system"), None, format!("user dire~~ctories and files: {list}")));
+        let path = std::env::current_dir().unwrap().to_str().unwrap().to_string();
+        let list = list_dirs(path).join(", ");
+        messages.push(Message::new(String::from("system"), None, format!("user directories and files: {list}")));
     }
 
     messages.push(Message::new(String::from("user"), None, task));
@@ -109,8 +103,8 @@ pub fn pai_run(gpt: &ChatGPT, task: String, flags: Vec<String>) {
         Ok(Some(res)) => {
             println!("{}", colorize_logs(&res));
         },
-        Err(err) => {
-            println!("error: {}", colorize_logs(&err.to_string()));
+        Err(_) => {
+            panic!("Failed to get response from ChatGPT");
         },
         _ => {},
     }
