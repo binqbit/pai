@@ -16,7 +16,7 @@ fn main() {
         args.next();
     
         let mut flags = vec![];
-        let mut cmd = String::new();
+        let mut task = String::new();
         let mut is_flags = true;
     
         while let Some(arg) = args.next() {
@@ -45,20 +45,30 @@ pai --version
 
 [--help, -h] - view help
 
+[-w] - write more information about task
+pai -w
+
 [-d] - show show directory folders");
                 return;
             } else if arg.starts_with('-') && is_flags {
                 flags.push(arg);
             } else {
                 is_flags = false;
-                cmd = format!("{} {}", cmd, arg);
+                task = format!("{task} {arg}");
             }
         }
 
         config.save();
+
+        if flags.contains(&"-w".to_string()) {
+            println!("Enter task:");
+            std::io::stdin().read_line(&mut task).unwrap();
+        }
+
+        let task = task.trim().to_string();
     
         if let Some(gpt) = ChatGPT::new(config) {
-            pai_run(&gpt, cmd, flags);
+            pai_run(&gpt, task, flags);
         } else {
             println!("Missing openai key");
         }
