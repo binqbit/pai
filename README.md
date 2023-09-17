@@ -15,8 +15,17 @@ pai tell me about of this project
 ```shell
 pai [-flags] task
 
+[--key] - set openai key
+pai --key 1234567890qwertyuiopasdfghjklzxcvbnm
+
+[--model] - set gpt model
+pai --model gpt-4
+
+[--version, -v] - view pai version
+pai --version
+
+[--help, -h] - view help
+
 [-d] - show show directory folders
 pai -d add to main file route for ...
-
-[-h] - help
 ```
