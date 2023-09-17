@@ -4,11 +4,11 @@ extern crate lazy_static;
 
 pub mod chatgpt;
 pub mod pai;
-pub mod variables;
+pub mod utils;
 
 pub use chatgpt::*;
 pub use pai::*;
-pub use variables::*;
+pub use utils::*;
 
 fn main() {
     if let Some(mut config) = Config::load() {

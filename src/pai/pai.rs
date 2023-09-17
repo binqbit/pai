@@ -1,13 +1,13 @@
 use std::{process::Command, thread};
 
-use crate::{Message, ChatGPT, FUNCTIONS};
+use crate::{Message, ChatGPT, FUNCTIONS, colorize_command, colorize_logs};
 
 
 
 pub fn run_commands(commands: Vec<String>) {
     let thread_handle = thread::spawn(move || {
         for cmd in commands {
-                println!("> {cmd}");
+                println!("> {}", colorize_command(&cmd));
                 let mut child = Command::new("cmd")
                     .arg("/C")
                     .arg(cmd)
@@ -16,8 +16,8 @@ pub fn run_commands(commands: Vec<String>) {
 
                 let status = child.wait().expect("Failed to wait for command");
 
-                if !status.success() {
-                    eprintln!("status code error: {:?}", status);
+                if let (false, Some(code)) = (!status.success(), status.code()) {
+                    eprintln!("status code error: {code}");
                 }
         }
     });
@@ -28,11 +28,11 @@ pub fn run_commands(commands: Vec<String>) {
 
 pub fn print_text(texts: Vec<String>) {
     if texts.len() == 1 {
-        println!("> print: {}", texts[0]);
+        println!("> print: {}", colorize_logs(&texts[0]));
     } else if texts.len() > 1 {
         println!("> print:");
         for text in texts {
-            println!("{}", text);
+            println!("{}", colorize_logs(&text));
         }
     }
 }
@@ -51,7 +51,7 @@ pub fn write_file(name: String, content: String) {
 }
 
 pub fn edit_text(gpt: &ChatGPT, text: String, description: String) -> Option<String> {
-    println!("> edit_text: {}", description);
+    println!("> edit_text: {}", colorize_logs(&description));
     let messages = vec![
         Message::new(String::from("system"), None, String::from("you need changes text according to user request and return the result in a format:\n```\ntext result\n```")),
         Message::new(String::from("user"), None, format!("{description}:\n{text}")),
@@ -107,10 +107,10 @@ pub fn pai_run(gpt: &ChatGPT, task: String, flags: Vec<String>) {
 
     match gpt.send(messages, Some(FUNCTIONS.to_owned())) {
         Ok(Some(res)) => {
-            println!("{}", res);
+            println!("{}", colorize_logs(&res));
         },
         Err(err) => {
-            println!("error: {}", err);
+            println!("error: {}", colorize_logs(&err.to_string()));
         },
         _ => {},
     }
