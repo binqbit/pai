@@ -25,7 +25,7 @@ lazy_static! {
                 "required": ["commands"],
             },
         }),
-        |_gpt: &ChatGPT, values: HashMap<String, Value>| {
+        |_gpt: &ChatGPT, values: HashMap<String, Value>, history: &mut Vec<String>| {
             let commands = values.get("commands")
                 .unwrap()
                 .as_array()
@@ -33,8 +33,12 @@ lazy_static! {
                 .iter()
                 .map(|value| value.as_str().unwrap().to_owned())
                 .collect::<Vec<_>>();
-            execute_commands(commands);
-            None
+            let func = format!("execute_commands({commands:?})");
+            if history.contains(&func) {
+                return None;
+            }
+            history.push(func);
+            Some(Value::String(execute_commands(commands)))
         }
     );
 
@@ -53,13 +57,17 @@ lazy_static! {
                 "required": ["text"],
             },
         }),
-        |_gpt: &ChatGPT, values: HashMap<String, Value>| {
+        |_gpt: &ChatGPT, values: HashMap<String, Value>, history: &mut Vec<String>| {
             let text = values.get("text")
                 .unwrap()
                 .as_str()
                 .unwrap();
-            print_text(text);
-            None
+            let func = format!("print_text({text:?})");
+            if history.contains(&func) {
+                return None;
+            }
+            history.push(func);
+            Some(Value::String(print_text(text)))
         }
     );
 
@@ -82,12 +90,17 @@ lazy_static! {
                 "description": "The contents of the file to create, e.g. Hello, world!",
             }
         }),
-        |_gpt: &ChatGPT, values: HashMap<String, Value>| {
+        |_gpt: &ChatGPT, values: HashMap<String, Value>, history: &mut Vec<String>| {
             let name = values.get("name")
                 .unwrap()
                 .as_str()
                 .unwrap()
                 .to_owned();
+            let func = format!("read_file({name})");
+            if history.contains(&func) {
+                return None;
+            }
+            history.push(func);
             Some(Value::String(read_file(name)))
         }
     );
@@ -111,7 +124,7 @@ lazy_static! {
                 "required": ["name", "content"],
             }
         }),
-        |_gpt: &ChatGPT, values: HashMap<String, Value>| {
+        |_gpt: &ChatGPT, values: HashMap<String, Value>, history: &mut Vec<String>| {
             let name = values.get("name")
                 .unwrap()
                 .as_str()
@@ -122,8 +135,12 @@ lazy_static! {
                 .as_str()
                 .unwrap()
                 .to_owned();
-            write_file(name, content);
-            None
+            let func = format!("write_file({name})");
+            if history.contains(&func) {
+                return None;
+            }
+            history.push(func);
+            Some(Value::String(write_file(name, content)))
         }
     );
 
@@ -149,12 +166,17 @@ lazy_static! {
                 },
             },
         }),
-        |_gpt: &ChatGPT, values: HashMap<String, Value>| {
+        |_gpt: &ChatGPT, values: HashMap<String, Value>, history: &mut Vec<String>| {
             let path = values.get("path")
                 .unwrap()
                 .as_str()
                 .unwrap()
                 .to_owned();
+            let func = format!("list_dirs({path})");
+            if history.contains(&func) {
+                return None;
+            }
+            history.push(func);
             Some(Value::String(list_dirs(path)))
         }
     );

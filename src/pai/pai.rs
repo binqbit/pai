@@ -4,7 +4,8 @@ use crate::{Message, ChatGPT, FUNCTIONS, colorize_command, colorize_logs};
 
 
 
-pub fn execute_commands(commands: Vec<String>) {
+pub fn execute_commands(commands: Vec<String>) -> String {
+    let mut cmd_status = String::new();
     let thread_handle = thread::spawn(move || {
         for cmd in commands {
                 println!("> {}", colorize_command(&cmd));
@@ -25,17 +26,21 @@ pub fn execute_commands(commands: Vec<String>) {
                 let status = child.wait().expect("Failed to wait for command");
 
                 if let (status, Some(code)) = (status.success(), status.code()) {
-                    eprintln!("{}", colorize_logs(&format!("{}, status code: {code}", if status { "success" } else { "failed" })));
+                    let result = format!("{}, status code: {code}", if status { "success" } else { "failed" });
+                    cmd_status = format!("{}\n>{}", cmd_status, result);
+                    eprintln!("{}", colorize_logs(&result));
                 }
         }
+        cmd_status
     });
-    thread_handle.join().expect("Failed to join thread");
+    thread_handle.join().map_err(|_| "Failed to join thread").unwrap()
 }
 
 
 
-pub fn print_text(text: &str) {
+pub fn print_text(text: &str) -> String {
     println!("{}", colorize_logs(text));
+    "ok".to_string()
 }
 
 pub fn read_file(name: String) -> String {
@@ -45,10 +50,14 @@ pub fn read_file(name: String) -> String {
     contents
 }
 
-pub fn write_file(name: String, content: String) {
+pub fn write_file(name: String, content: String) -> String {
     println!("> write_file: {}", name);
-    std::fs::write(name, content)
-        .expect("Something went wrong writing the file");
+    if let Err(err) = std::fs::write(name, content) {
+        eprintln!("Failed to write file: {}", err);
+        format!("Failed to write file: {}", err)
+    } else {
+        "File written successfully".to_string()
+    }
 }
 
 pub fn list_dirs(path: String) -> String {
@@ -75,7 +84,7 @@ complete the user's task using the available functions: {}
     task)),
     ];
 
-    match gpt.send(messages, Some(FUNCTIONS.to_owned())) {
+    match gpt.send(messages, Some(FUNCTIONS.to_owned()), &mut vec![]) {
         Ok(Some(res)) => {
             println!("{}", colorize_logs(&res));
         },
