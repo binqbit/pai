@@ -8,11 +8,19 @@ pub fn execute_commands(commands: Vec<String>) {
     let thread_handle = thread::spawn(move || {
         for cmd in commands {
                 println!("> {}", colorize_command(&cmd));
-                let mut child = Command::new("cmd")
-                    .arg("/C")
-                    .arg(cmd)
-                    .spawn()
-                    .expect("Failed to execute command");
+                let mut child = if cfg!(target_os = "windows") {
+                    Command::new("cmd")
+                        .arg("/C")
+                        .arg(cmd)
+                        .spawn()
+                        .expect("Failed to execute command")
+                } else {
+                    Command::new("sh")
+                        .arg("-c")
+                        .arg(cmd)
+                        .spawn()
+                        .expect("Failed to execute command")
+                };
 
                 let status = child.wait().expect("Failed to wait for command");
 
@@ -59,12 +67,10 @@ pub fn pai_run(gpt: &ChatGPT, task: String) {
         Message::new(String::from("user"), None, format!(r#"
 os info: {} {}
 current directory: {}
-functions: {}
 complete the user's task using the available functions: {}
 "#,
     std::env::consts::OS,
     std::env::consts::ARCH,
-    FUNCTIONS.get_names().join(", "),
     std::env::current_dir().unwrap().display(),
     task)),
     ];
