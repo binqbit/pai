@@ -3,7 +3,7 @@ use serde::{Serialize, Deserialize};
 use serde_json::Value;
 use rust_tokenizers::tokenizer::{Tokenizer, TruncationStrategy, Gpt2Tokenizer};
 
-use crate::{Functions, Message, GptResult, Config, get_exec_path};
+use crate::{Functions, Message, GptResult, Config, get_exec_path, History};
 
 lazy_static! {
     pub static ref TOKENIZER: Gpt2Tokenizer = {
@@ -77,7 +77,7 @@ impl ChatGPT {
         }
     }
 
-    pub fn send(&self, mut messages: Vec<Message>, functions: Option<Functions>, history: &mut Vec<String>) -> GptResult<Option<String>> {
+    pub fn send(&self, mut messages: Vec<Message>, functions: Option<Functions>, history: &mut History) -> GptResult<Option<String>> {
         let input = serde_json::to_string(&ChatInput {
             model: self.model.to_owned(),
             max_tokens: None,
@@ -115,7 +115,6 @@ impl ChatGPT {
                     messages.push(message);
                     return self.send(messages, functions, history);
                 } else {
-                    messages.push(Message::new(String::from("system"), None, format!("function '{}' already called", func.name)));
                     return self.send(messages, functions, history);
                 }
             }

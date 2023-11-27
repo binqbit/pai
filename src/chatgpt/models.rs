@@ -14,7 +14,7 @@ pub struct Message {
 #[derive(Debug, Clone)]
 pub struct Function {
     pub format: Value,
-    pub function: fn(&ChatGPT, HashMap<String, Value>, &mut Vec<String>) -> Option<Value>,
+    pub function: fn(&ChatGPT, HashMap<String, Value>, &mut History) -> Option<Value>,
 }
 
 #[derive(Debug, Clone)]
@@ -33,7 +33,7 @@ impl Message {
 }
 
 impl Function {
-    pub fn new(format: Value, function: fn(&ChatGPT, HashMap<String, Value>, &mut Vec<String>) -> Option<Value>) -> Self {
+    pub fn new(format: Value, function: fn(&ChatGPT, HashMap<String, Value>, &mut History) -> Option<Value>) -> Self {
         Self {
             format,
             function,
@@ -49,7 +49,7 @@ impl Function {
             .to_string()
     }
 
-    pub fn run(&self, gpt: &ChatGPT, values: HashMap<String, Value>, history: &mut Vec<String>) -> Option<Message> {
+    pub fn run(&self, gpt: &ChatGPT, values: HashMap<String, Value>, history: &mut History) -> Option<Message> {
         if let Some(res) = (self.function)(gpt, values, history) {
             Some(Message {
                 role: String::from("function"),
@@ -86,7 +86,7 @@ impl Functions {
         None
     }
 
-    pub fn run(&self, gpt: &ChatGPT, name: &str, values: HashMap<String, Value>, history: &mut Vec<String>) -> Option<Message> {
+    pub fn run(&self, gpt: &ChatGPT, name: &str, values: HashMap<String, Value>, history: &mut History) -> Option<Message> {
         if let Some(function) = self.get(name) {
             function.run(gpt, values, history)
         } else {
@@ -117,4 +117,4 @@ macro_rules! function {
 
 pub use function;
 
-use crate::ChatGPT;
+use crate::{ChatGPT, History};

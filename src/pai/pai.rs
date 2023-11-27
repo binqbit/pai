@@ -3,6 +3,11 @@ use std::{process::Command, thread};
 use crate::{Message, ChatGPT, FUNCTIONS, colorize_command, colorize_logs};
 
 
+pub struct History {
+    pub commands: Vec<String>,
+    pub retry: bool,
+}
+
 
 pub fn execute_commands(commands: Vec<String>) -> String {
     let mut cmd_status = String::new();
@@ -84,7 +89,7 @@ complete the user's task using the available functions: {}
     task)),
     ];
 
-    match gpt.send(messages, Some(FUNCTIONS.to_owned()), &mut vec![]) {
+    match gpt.send(messages, Some(FUNCTIONS.to_owned()), &mut History { commands: vec![], retry: false }) {
         Ok(Some(res)) => {
             println!("{}", colorize_logs(&res));
         },
