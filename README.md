@@ -1,6 +1,6 @@
 # PackageAI
 
-## pai is package manager with ai
+## Package manager with AI in terminal
 
 # Example
 ```shell
