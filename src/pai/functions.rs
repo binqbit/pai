@@ -2,23 +2,23 @@ use std::collections::HashMap;
 
 use serde_json::{json, Value};
 
-use crate::{Function, Functions, function, run_commands, print_text, read_file, write_file, edit_text, ChatGPT, list_dirs};
+use crate::{ChatGPT, Function, Functions, function, execute_commands, print_text, read_file, write_file, list_dirs};
 
 
 lazy_static! {
-    pub static ref FUNCTION_RUN_COMMANDS: Function = function!(
+    pub static ref FUNCTION_EXECUTE_COMMANDS: Function = function!(
         json!({
-            "name": "run_commands",
-            "description": "Run commands in the terminal",
+            "name": "execute_commands",
+            "description": "Execute the commands in the terminal",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "commands": {
                         "type": "array",
-                        "description": "The array of commands to run, e.g.",
+                        "description": "The array of commands to execute, e.g. ['cd dir', 'ls']",
                         "items": {
                             "type": "string",
-                            "description": "The command to run, e.g. echo Hello, world!"
+                            "description": "The command to execute, e.g. echo Hello, world!"
                         },
                     },
                 },
@@ -33,7 +33,7 @@ lazy_static! {
                 .iter()
                 .map(|value| value.as_str().unwrap().to_owned())
                 .collect::<Vec<_>>();
-            run_commands(commands);
+            execute_commands(commands);
             None
         }
     );
@@ -45,27 +45,20 @@ lazy_static! {
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "texts": {
-                        "type": "array",
-                        "description": "The array of text to print, e.g.",
-                        "items": {
-                            "type": "string",
-                            "description": "The text to print, e.g. Hello, world!"
-                        },
+                    "text": {
+                        "type": "string",
+                        "description": "The text to print, e.g. Hello, world!"
                     },
                 },
-                "required": ["texts"],
+                "required": ["text"],
             },
         }),
         |_gpt: &ChatGPT, values: HashMap<String, Value>| {
-            let texts = values.get("texts")
+            let text = values.get("text")
                 .unwrap()
-                .as_array()
-                .unwrap()
-                .iter()
-                .map(|value| value.as_str().unwrap().to_owned())
-                .collect::<Vec<_>>();
-            print_text(texts);
+                .as_str()
+                .unwrap();
+            print_text(text);
             None
         }
     );
@@ -134,48 +127,6 @@ lazy_static! {
         }
     );
 
-    pub static ref FUNCTION_EDIT_TEXT: Function = function!(
-        json!({
-            "name": "edit_text",
-            "description": "Edit text",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "text": {
-                        "type": "string",
-                        "description": "The text to edit, e.g. Hello, world!",
-                    },
-                    "description": {
-                        "type": "string",
-                        "description": "A description of what needs to be changed or added to the text, e.g. Add a new line at the end of the text",
-                    }
-                },
-                "required": ["text", "description"],
-            },
-            "output": {
-                "type": "string",
-                "description": "The edited text, e.g. Hello, world!\nAdd a new line at the end of the text",
-            },
-        }),
-        |_gpt: &ChatGPT, values: HashMap<String, Value>| {
-            let text = values.get("text")
-                .unwrap()
-                .as_str()
-                .unwrap()
-                .to_owned();
-            let description = values.get("description")
-                .unwrap()
-                .as_str()
-                .unwrap()
-                .to_owned();
-            if let Some(res) = edit_text(_gpt, text, description) {
-                return Some(Value::String(res));
-            } else {
-                return None;
-            }
-        }
-    );
-
     pub static ref FUNCTION_LIST_DIRS: Function = function!(
         json!({
             "name": "list_dirs",
@@ -204,16 +155,15 @@ lazy_static! {
                 .as_str()
                 .unwrap()
                 .to_owned();
-            Some(Value::Array(list_dirs(path).into_iter().map(|path| Value::String(path)).collect::<Vec<_>>()))
+            Some(Value::String(list_dirs(path)))
         }
     );
 
     pub static ref FUNCTIONS: Functions = Functions::new(vec![
-        FUNCTION_RUN_COMMANDS.to_owned(),
+        FUNCTION_EXECUTE_COMMANDS.to_owned(),
         FUNCTION_PRINT_TEXT.to_owned(),
         FUNCTION_READ_FILE.to_owned(),
         FUNCTION_WRITE_FILE.to_owned(),
-        FUNCTION_EDIT_TEXT.to_owned(),
         FUNCTION_LIST_DIRS.to_owned(),
     ]);
 }

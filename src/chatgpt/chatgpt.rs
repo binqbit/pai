@@ -33,6 +33,7 @@ struct ChatInput {
     model: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     max_tokens: Option<u32>,
+    temperature: Option<f64>,
     messages: Vec<Message>,
     #[serde(skip_serializing_if = "Option::is_none")]
     functions: Option<Vec<Value>>,
@@ -80,15 +81,20 @@ impl ChatGPT {
         let input = serde_json::to_string(&ChatInput {
             model: self.model.to_owned(),
             max_tokens: None,
+            temperature: Some(0.0),
             messages: messages.to_owned(),
             functions: functions.to_owned().map(|f| f.functions()),
         })?;
 
         let tokens = count_tokens(&input);
+        if tokens > 4000 {
+            panic!("Input is too long: {} tokens", tokens);
+        }
         
         let input = serde_json::to_string(&ChatInput {
             model: self.model.to_owned(),
             max_tokens: Some(4000 - tokens as u32),
+            temperature: None,
             messages: messages.to_owned(),
             functions: functions.to_owned().map(|f| f.functions()),
         })?;

@@ -25,12 +25,6 @@ pai --model gpt-4
 pai --version
 
 [--help, -h] - view help
-
-[-w] - write more information about task
-pai -w
-
-[-d] - show show directory folders
-pai -d add to main file route for ...
 ```
 
 # Install
