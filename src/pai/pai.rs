@@ -76,7 +76,7 @@ pub fn list_dirs(path: String) -> String {
         .join("\n")
 }
 
-pub fn pai_run(gpt: &ChatGPT, task: String) {
+pub fn pai_run(gpt: &ChatGPT, task: String, flags: Vec<String>) {
     let messages = vec![
         Message::new(String::from("user"), None, format!(r#"
 os info: {} {}
@@ -89,7 +89,7 @@ complete the user's task using the available functions: {}
     task)),
     ];
 
-    match gpt.send(messages, Some(FUNCTIONS.to_owned()), &mut History { commands: vec![], retry: false }) {
+    match gpt.send(messages, Some(FUNCTIONS.to_owned()), &mut History { commands: vec![], retry: false }, flags) {
         Ok(Some(res)) => {
             println!("{}", colorize_logs(&res));
         },

@@ -16,6 +16,7 @@ fn main() {
         args.next();
     
         let mut task = String::new();
+        let mut flags = vec![];
         let mut is_flags = true;
     
         while let Some(arg) = args.next() {
@@ -48,6 +49,8 @@ pai --version
 [--help, -h] - view help
 "#);
                 return;
+            } else if arg.starts_with("-") && is_flags {
+                flags.push(arg);
             } else {
                 is_flags = false;
                 task = format!("{task} {arg}");
@@ -59,7 +62,7 @@ pai --version
         let task = task.trim().to_string();
     
         if let Some(gpt) = ChatGPT::new(config) {
-            pai_run(&gpt, task);
+            pai_run(&gpt, task, flags);
         } else {
             println!("Missing openai key");
         }

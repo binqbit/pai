@@ -77,7 +77,7 @@ impl ChatGPT {
         }
     }
 
-    pub fn send(&self, mut messages: Vec<Message>, functions: Option<Functions>, history: &mut History) -> GptResult<Option<String>> {
+    pub fn send(&self, mut messages: Vec<Message>, functions: Option<Functions>, history: &mut History, flags: Vec<String>) -> GptResult<Option<String>> {
         let input = serde_json::to_string(&ChatInput {
             model: self.model.to_owned(),
             max_tokens: None,
@@ -111,11 +111,13 @@ impl ChatGPT {
         if let Some(func) = output.function() {
             if let Some(funcs) = functions.as_ref() {
                 let args = serde_json::from_str(&func.arguments)?;
-                if let Some(message) = funcs.run(self, &func.name, args, history) {
-                    messages.push(message);
-                    return self.send(messages, functions, history);
+                if let Some(message) = funcs.run(self, &func.name, args, history) {    
+                    if !flags.contains(&String::from("-c")) {
+                        messages.push(message);
+                        return self.send(messages, functions, history, flags);
+                    }
                 } else {
-                    return self.send(messages, functions, history);
+                    return self.send(messages, functions, history, flags);
                 }
             }
         }
