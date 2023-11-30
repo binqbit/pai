@@ -1,6 +1,6 @@
 use std::{process::Command, thread};
 
-use crate::{Message, ChatGPT, FUNCTIONS, colorize_command, colorize_logs};
+use crate::{Message, ChatGPT, FUNCTIONS, colorize_command, colorize_logs, get_exec_path};
 
 
 pub struct History {
@@ -77,16 +77,33 @@ pub fn list_dirs(path: String) -> String {
 }
 
 pub fn pai_run(gpt: &ChatGPT, task: String, flags: Vec<String>) {
+    let database = if flags.contains(&String::from("-d")) {
+        let path = get_exec_path().join("database");
+        let files = std::fs::read_dir(path)
+            .expect("Failed to read directory");
+        let mut db = String::new();
+        for file in files {
+            let content = std::fs::read_to_string(file.unwrap().path())
+                .expect("Something went wrong reading the file");
+            db = format!("{}\n{}", db, content);
+        }
+        db
+    } else {
+        String::new()
+    };
     let messages = vec![
         Message::new(String::from("user"), None, format!(r#"
 os info: {} {}
 current directory: {}
 complete the user's task using the available functions: {}
+additional info:
+{}
 "#,
     std::env::consts::OS,
     std::env::consts::ARCH,
     std::env::current_dir().unwrap().display(),
-    task)),
+    task,
+    database)),
     ];
 
     match gpt.send(messages, Some(FUNCTIONS.to_owned()), &mut History { commands: vec![], retry: false }, flags) {
