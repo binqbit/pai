@@ -9,10 +9,11 @@ pub fn exec(commands: Vec<Shell>) {
         for cmd in commands {
             if cmd.is_command {
                 let cmd = cmd.content;
-                println!("> {}", colorize_command(&cmd));
+                println!("{} {}", colorize_logs(">"), colorize_command(&cmd));
                 if cmd.starts_with("cd") {
                     let path = cmd[3..].trim();
                     std::env::set_current_dir(path).expect("Failed to change directory");
+                    println!();
                     continue;
                 }
                 let mut child = if cfg!(target_os = "windows") {
@@ -30,14 +31,25 @@ pub fn exec(commands: Vec<Shell>) {
                 };
 
                 let status = child.wait().expect("Failed to wait for command");
-
-                if let (status, Some(code)) = (status.success(), status.code()) {
-                    let result = format!("{}, status code: {code}", if status { "success" } else { "failed" });
-                    eprintln!("{}", colorize_logs(&result));
+                if !status.success() {
+                    eprintln!("Command exited with status: {status}");
                 }
             } else {
-                println!("{}", colorize_logs(&cmd.content));
+                let text = cmd.content
+                    .split("\n")
+                    .map(|line| {
+                        let line = line.trim();
+                        if line.is_empty() {
+                            line.to_owned()
+                        } else {
+                            format!("# {}", line)
+                        }
+                    })
+                    .collect::<Vec<_>>()
+                    .join("\n");
+                println!("{}", colorize_logs(&text));
             }
+            println!();
         }
     });
     thread_handle.join().map_err(|_| "Failed to join thread").unwrap();
@@ -49,13 +61,13 @@ pub fn pai_run(gpt: &ChatGPT, command: String) {
     let database = read_database();
     let messages = vec![
         Message::new("system", format!(r#"
-os info: {OS} {ARCH}
-
-current directory: {path}
-files and directories:
+user system information:
+- os info: {OS} {ARCH}
+- current directory: {path}
+- files and directories:
 {files}
 
-additional commands:
+additional information of system commands:
 {database}
 "#)),
         Message::new("assistant", format!(r#"

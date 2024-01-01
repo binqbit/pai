@@ -6,9 +6,9 @@ pub fn list_files(path: &str) -> String {
         let entry = entry.expect("Failed to read directory entry");
         let path = entry.path();
         if path.is_dir() {
-            dirs.push_str(&format!("{}/\n", entry.file_name().to_str().unwrap()));
+            dirs.push_str(&format!("./{}/\n", entry.file_name().to_str().unwrap()));
         } else {
-            dirs.push_str(&format!("{}\n", entry.file_name().to_str().unwrap()));
+            dirs.push_str(&format!("./{}\n", entry.file_name().to_str().unwrap()));
         }
     }
     dirs

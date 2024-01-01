@@ -132,11 +132,16 @@ impl ChatOutput {
                 if let Some(end_shell) = shell.find("```") {
                     let shell = shell.split_at(end_shell);
                     let text = shell.1[3..].trim();
-                    let shell = shell.0.trim().replace("\n\n", "\n").replace("\n\n", "\n");
-                    commands.push(Shell {
-                        is_command: true,
-                        content: shell.to_owned(),
-                    });
+                    let mut shell = shell.0.trim().to_string();
+                    while let Some(_) = shell.find("\n\n") {
+                        shell = shell.replace("\n\n", "\n");
+                    }
+                    for cmd in shell.split("\n") {
+                        commands.push(Shell {
+                            is_command: true,
+                            content: cmd.trim().to_owned(),
+                        });
+                    }
                     if !text.is_empty() {
                         commands.push(Shell {
                             is_command: false,
@@ -146,7 +151,7 @@ impl ChatOutput {
                 } else {
                     commands.push(Shell {
                         is_command: false,
-                        content: shell.to_owned(),
+                        content: shell.trim().to_owned(),
                     });
                 }
             }
