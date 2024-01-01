@@ -1,6 +1,8 @@
 
 use regex::{Regex, Captures};
 
+
+
 lazy_static! {
     static ref COMMAND_PATTERN: Regex = Regex::new(r"(\b\d+\b)|(^(\./)?\w[\w\-\.]*\b)|(\-{1,2}\w[\w\-\.]*\b)|(\b\w[\w\-\.]*\b)").unwrap();
     static ref LOGS_PATTERN: Regex = Regex::new(r"(\W+)|(\b\d+\b)").unwrap();
@@ -15,6 +17,8 @@ const CMD_DEFAULT_COLOR: &str = "\x1b[0m";
 const LOGS_NUMBER_COLOR: &str = "\x1b[34m";
 const LOGS_SYMBOL_COLOR: &str = "\x1b[32m";
 const LOGS_DEFAULT_COLOR: &str = "\x1b[0m";
+
+
 
 fn get_command_color(caps: &Captures) -> &'static str {
     if caps.get(1).is_some() {

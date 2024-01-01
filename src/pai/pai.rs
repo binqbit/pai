@@ -1,19 +1,20 @@
-use std::{process::Command, thread};
+use std::{process::Command, thread, env::consts::{OS, ARCH}};
 
-use crate::{Message, ChatGPT, FUNCTIONS, colorize_command, colorize_logs, get_exec_path};
-
-
-pub struct History {
-    pub commands: Vec<String>,
-    pub retry: bool,
-}
+use crate::{colorize_command, colorize_logs, read_database, ChatGPT, Message, list_files, Shell};
 
 
-pub fn execute_commands(commands: Vec<String>) -> String {
-    let mut cmd_status = String::new();
+
+pub fn exec(commands: Vec<Shell>) {
     let thread_handle = thread::spawn(move || {
         for cmd in commands {
+            if cmd.is_command {
+                let cmd = cmd.content;
                 println!("> {}", colorize_command(&cmd));
+                if cmd.starts_with("cd") {
+                    let path = cmd[3..].trim();
+                    std::env::set_current_dir(path).expect("Failed to change directory");
+                    continue;
+                }
                 let mut child = if cfg!(target_os = "windows") {
                     Command::new("cmd")
                         .arg("/C")
@@ -32,87 +33,56 @@ pub fn execute_commands(commands: Vec<String>) -> String {
 
                 if let (status, Some(code)) = (status.success(), status.code()) {
                     let result = format!("{}, status code: {code}", if status { "success" } else { "failed" });
-                    cmd_status = format!("{}\n>{}", cmd_status, result);
                     eprintln!("{}", colorize_logs(&result));
                 }
+            } else {
+                println!("{}", colorize_logs(&cmd.content));
+            }
         }
-        cmd_status
     });
-    thread_handle.join().map_err(|_| "Failed to join thread").unwrap()
+    thread_handle.join().map_err(|_| "Failed to join thread").unwrap();
 }
 
-
-
-pub fn print_text(text: &str) -> String {
-    println!("{}", colorize_logs(text));
-    "ok".to_string()
-}
-
-pub fn read_file(name: String) -> String {
-    println!("> read_file: {}", colorize_logs(&name));
-    let contents = std::fs::read_to_string(name)
-        .expect("Something went wrong reading the file");
-    contents
-}
-
-pub fn write_file(name: String, content: String) -> String {
-    println!("> write_file: {}", name);
-    if let Err(err) = std::fs::write(name, content) {
-        eprintln!("Failed to write file: {}", err);
-        format!("Failed to write file: {}", err)
-    } else {
-        "File written successfully".to_string()
-    }
-}
-
-pub fn list_dirs(path: String) -> String {
-    println!("> list_dirs: {}", colorize_logs(&path));
-    std::fs::read_dir(path)
-        .expect("Failed to read directory")
-        .collect::<Vec<_>>()
-        .iter()
-        .map(|path| path.as_ref().unwrap().path().display().to_string())
-        .collect::<Vec<_>>()
-        .join("\n")
-}
-
-pub fn pai_run(gpt: &ChatGPT, task: String, flags: Vec<String>) {
-    let database = if flags.contains(&String::from("-d")) {
-        let path = get_exec_path().join("database");
-        let files = std::fs::read_dir(path)
-            .expect("Failed to read directory");
-        let mut db = String::new();
-        for file in files {
-            let content = std::fs::read_to_string(file.unwrap().path())
-                .expect("Something went wrong reading the file");
-            db = format!("{}\n{}", db, content);
-        }
-        db
-    } else {
-        String::new()
-    };
+pub fn pai_run(gpt: &ChatGPT, command: String) {
+    let path = std::env::current_dir().unwrap().display().to_string();
+    let files = list_files(&path);
+    let database = read_database();
     let messages = vec![
-        Message::new(String::from("user"), None, format!(r#"
-os info: {} {}
-current directory: {}
-complete the user's task using the available functions: {}
-additional info:
-{}
-"#,
-    std::env::consts::OS,
-    std::env::consts::ARCH,
-    std::env::current_dir().unwrap().display(),
-    task,
-    database)),
+        Message::new("system", format!(r#"
+os info: {OS} {ARCH}
+
+current directory: {path}
+files and directories:
+{files}
+
+additional commands:
+{database}
+"#)),
+        Message::new("assistant", format!(r#"
+write shell commands to execute as per user requirement: {command}
+example:
+    user: create new node js project 'my-project'
+    assistant:
+    ```shell
+    mkdir my-project
+    cd my-project
+    npm init -y
+    ```
+"#)),
     ];
 
-    match gpt.send(messages, Some(FUNCTIONS.to_owned()), &mut History { commands: vec![], retry: false }, flags) {
-        Ok(Some(res)) => {
-            println!("{}", colorize_logs(&res));
+    match gpt.send(messages) {
+        Ok(output) => {
+            if let Some(commands) = output.shell() {
+                exec(commands);
+            } else if let Some(text) = output.text() {
+                println!("{}", colorize_logs(&text));
+            } else {
+                println!("No response from ChatGPT");
+            }
         },
         Err(err) => {
-            eprintln!("Failed to get response from ChatGPT: {}", err);
+            eprintln!("Failed to get response from ChatGPT: {err}");
         },
-        _ => {},
     }
 }

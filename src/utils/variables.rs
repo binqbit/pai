@@ -1,7 +1,8 @@
 use std::{env, path::{PathBuf, Path}};
 
 
-pub const PAI_VERSION: &str = "v1.0.2";
+
+pub const PAI_VERSION: &str = "v2.0";
 pub const PAI_GPT_MODEL: &str = "gpt-3.5-turbo";
 
 lazy_static! {
