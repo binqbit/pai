@@ -24,19 +24,15 @@ pai --version
 
 # Install
 ```shell
-git clone http://github.com/binqbit/pai.git
-cd pai
 cargo build --release
-
-# liunx
 mkdir build
 mkdir build/config
+
+# liunx
 cp target/release/pai build/pai
 export PATH=$PATH:$(pwd)/build
 
 # windows
-mkdir build
-mkdir build/config
 copy target/release/pai.exe build/pai.exe
 set PATH=%PATH%;%cd%/build
 ```
