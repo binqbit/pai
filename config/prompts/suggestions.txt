@@ -1,0 +1,31 @@
+Write suggestions for the command or description of the command.
+You need to return a list of suggestions with more than 5 options.
+
+Example: remove all docker
+Suggestions:
+```json
+{
+    "suggestions": [
+        {
+            "suggestion": "remove all docker containers",
+            "command": "docker compose down -v"
+        },
+        {
+            "suggestion": "remove all docker images",
+            "command": "docker rmi $(docker images -q)"
+        },
+        {
+            "suggestion": "remove all docker cache and volumes",
+            "command": "docker system prune --all --volumes"
+        },
+        {
+            "suggestion": "remove all docker networks",
+            "command": "docker network prune"
+        },
+        {
+            "suggestion": "remove all docker containers",
+            "command": "docker rm $(docker ps -a -q)"
+        }
+    ]
+}
+```

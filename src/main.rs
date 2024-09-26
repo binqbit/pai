@@ -1,29 +1,33 @@
+use utils::{PAI_GPT_MODEL, PAI_VERSION};
+
 
 #[macro_use]
 extern crate lazy_static;
 
+pub mod chatgpt;
+pub mod terminal;
 pub mod pai;
 pub mod utils;
-
-pub use pai::*;
-pub use utils::*;
-
-
 
 fn main() {
     let mut args = std::env::args();
     args.next();
 
-    let mut command = if let Some(arg) = args.next() {
-        if arg == "--key" || arg == "-k" {
-            let key = args.next().expect("Missing openai key");
-            Config::set_apikey(key);
+    let mut flags = vec![];
+    let mut task = String::new();
+
+    match args.next().as_deref() {
+        Some("--key") | Some("-k") => {
+            let key = args.next().expect("Missing OpenAI API-Key!");
+            chatgpt::set_apikey(&key);
             return;
-        } else if arg == "--version" || arg == "-v" {
-            println!("version: {PAI_VERSION}");
+        },
+        Some("--version") | Some("-v") => {
+            println!("pai version: {PAI_VERSION}");
             println!("gpt model: {PAI_GPT_MODEL}");
             return;
-        } else if arg == "--help" || arg == "-h" {
+        },
+        Some("--help") | Some("-h") => {
             println!(r#"
 pai [-flags] or [command]
 
@@ -36,23 +40,33 @@ pai --version
 [--help, -h] - view help
 "#);
             return;
-        } else {
-            arg
-        }
-    } else {
-        return;
-    };
-
-    while let Some(arg) = args.next() {
-        command = format!("{} {}", command, arg);
+        },
+        Some(arg) => {
+            if arg.starts_with("-") {
+                flags.push(arg.to_string());
+            } else {
+                task = arg.to_string();
+            }
+            while let Some(arg) = args.next() {
+                if task.is_empty() && arg.starts_with("-") {
+                    flags.push(arg);
+                } else {
+                    task = format!("{} {}", task, arg);
+                }
+            }
+        },
+        _ => {},
     }
 
-    let command = command.trim().to_string();
+    if chatgpt::get_apikey().is_none() {
+        println!("OpenAI API-Key not set!");
+        println!("Use 'pai -k <API-KEY>' to set the key");
+        return;
+    }
 
-    if let Some(config) = Config::load() {
-        let gpt = ChatGPT::new(&config);
-        pai_run(&gpt, command);
+    if task.is_empty() {
+        terminal::input_and_processing(flags);
     } else {
-        println!("Missing openai key!");
+        pai::run_task(task);
     }
 }

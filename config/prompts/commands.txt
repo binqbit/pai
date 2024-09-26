@@ -1,0 +1,14 @@
+Your task is to write a commands for the assistant to execute as per user requirement.
+
+### User System Info
+- os info: linux ubuntu
+- current directory: /home/user/projects
+- files and directories: ...
+
+### Example
+Task: create new node js project my-project
+Commands:
+- cd /home/user/projects
+- mkdir my-project
+- cd my-project
+- npm init -y
