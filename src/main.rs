@@ -1,11 +1,11 @@
-use utils::GPT_MODEL;
+use chatgpt::ChatGPT;
+use utils::{print_markdown, GPT_MODEL};
 
 #[macro_use]
 extern crate lazy_static;
 
 pub mod chatgpt;
 pub mod terminal;
-pub mod pai;
 pub mod utils;
 
 fn main() {
@@ -22,19 +22,19 @@ fn main() {
             return;
         },
         Some("--version") | Some("-v") => {
-            println!("pai version: {}", env!("CARGO_PKG_VERSION"));
+            println!("sai version: {}", env!("CARGO_PKG_VERSION"));
             println!("gpt model: {}", GPT_MODEL);
             return;
         },
         Some("--help") | Some("-h") => {
             println!(r#"
-pai [-flags] or [command]
+sai [-flags] or [command]
 
 [--key, -k] - set openai key
-pai --key 1234567890qwertyuiopasdfghjklzxcvbnm
+sai --key 1234567890qwertyuiopasdfghjklzxcvbnm
 
-[--version, -v] - view pai version
-pai --version
+[--version, -v] - view sai version
+sai --version
 
 [--help, -h] - view help
 "#);
@@ -59,13 +59,20 @@ pai --version
 
     if chatgpt::get_apikey().is_none() {
         println!("OpenAI API-Key not set!");
-        println!("Use 'pai -k <API-KEY>' to set the key");
+        println!("Use 'sai -k <API-KEY>' to set the key");
         return;
     }
 
     if task.is_empty() {
         terminal::input_and_processing(flags);
     } else {
-        pai::run_task(task);
+        match ChatGPT::for_assistant().run_assistant(task) {
+            Ok(text) => {
+                print_markdown(&text);
+            },
+            Err(err) => {
+                eprintln!("Error: {err:?}");
+            },
+        }
     }
 }

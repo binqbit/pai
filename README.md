@@ -1,23 +1,23 @@
-# PackageAI
+# ShellAI
 
-## Package manager with AI in terminal
+## Shell with AI in terminal
 
 # Example
 ```shell
-pai install all libs for node crypto
-pai run this project
-pai create new backend app on rust for blockchain
+sai install all libs for node crypto
+sai run this project
+sai create new backend app on rust for blockchain
 ```
 
 # Flags
 ```shell
-pai [-flags] or [command]
+sai [-flags] or [command]
 
 [--key, -k] - set openai key
-pai --key 1234567890qwertyuiopasdfghjklzxcvbnm
+sai --key 1234567890qwertyuiopasdfghjklzxcvbnm
 
-[--version, -v] - view pai version
-pai --version
+[--version, -v] - view sai version
+sai --version
 
 [--help, -h] - view help
 ```
@@ -29,10 +29,10 @@ mkdir build
 mkdir build/config
 
 # liunx
-cp target/release/pai build/pai
+cp target/release/sai build/sai
 export PATH=$PATH:$(pwd)/build
 
 # windows
-copy target/release/pai.exe build/pai.exe
+copy target/release/sai.exe build/sai.exe
 set PATH=%PATH%;%cd%/build
 ```

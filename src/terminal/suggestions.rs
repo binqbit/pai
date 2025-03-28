@@ -22,8 +22,8 @@ impl Suggestions {
         Self {
             suggestions: vec![
                 Suggestion {
-                    suggestion: "pai --help".to_string(),
-                    command: "pai --help".to_string(),
+                    suggestion: "sai --help".to_string(),
+                    command: "sai --help".to_string(),
                 }
             ],
             current_suggestion: 0,

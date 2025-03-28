@@ -1,4 +1,4 @@
 @echo off
 cargo build --release
 mkdir bin
-copy .\target\release\pai.exe .\bin\pai.exe
+copy .\target\release\sai.exe .\bin\sai.exe
