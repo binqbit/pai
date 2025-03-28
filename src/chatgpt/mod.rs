@@ -1,9 +1,7 @@
 use reqwest::blocking::Client;
 use serde::{Serialize, Deserialize, de::DeserializeOwned};
 use serde_json::{json, Value};
-use crate::{utils::API_KEY, PAI_GPT_MODEL};
-
-
+use crate::utils::{API_KEY, GPT_MODEL};
 
 mod prompts;
 mod config;
@@ -15,8 +13,6 @@ pub use config::*;
 pub use result::*;
 pub use commands::*;
 pub use functions::*;
-
-
 
 pub struct ChatGPT {
     pub temperature: Option<f32>,
@@ -75,8 +71,6 @@ pub struct ChatOutput {
     choices: Vec<Value>,
 }
 
-
-
 impl ChatGPT {
     pub fn from(temperature: Option<f32>, tools: Option<Vec<Value>>, is_json: bool) -> Self {
         Self {
@@ -95,17 +89,17 @@ impl ChatGPT {
             .body(ChatInput::form_messages(&messages, self.temperature.clone(), self.tools.as_ref(), self.is_json).to_string())
             .send()
             .map_err(|err| {
-                eprintln!("Error sending messages: {err:?}");
+                println!("Error sending messages: {err:?}");
                 Error::Request(err.to_string())
             })?
             .error_for_status()
             .map_err(|err| {
-                eprintln!("Error with status: {err:?}");
+                println!("Error with status: {err:?}");
                 Error::Request(err.to_string())
             })?
             .json::<ChatOutput>()
             .map_err(|err| {
-                eprintln!("Error parsing output: {err:?}");
+                println!("Error parsing output: {err:?}");
                 Error::Output(err.to_string())
             })?;
 
@@ -124,8 +118,6 @@ impl ChatGPT {
         }
     }
 }
-
-
 
 impl Message {
     pub fn new(role: &str, content: String) -> Self {
@@ -171,7 +163,7 @@ impl Message {
 impl<'a> ChatInput<'a> {
     pub fn form_messages(messages: &'a Vec<Message>, temperature: Option<f32>, tools: Option<&'a Vec<Value>>, is_json: bool) -> Self {
         Self {
-            model: PAI_GPT_MODEL.to_owned(),
+            model: GPT_MODEL.to_owned(),
             temperature,
             response_format: if is_json {
                 Some(json!({

@@ -1,8 +1,6 @@
 use serde::{Serialize, Deserialize, de::DeserializeOwned};
 use serde_json::{json, Value};
-use super::{ChatGPT, Message, Error, Result};
-
-
+use super::{ChatGPT, Error, Result};
 
 #[macro_export]
 macro_rules! function {
@@ -19,8 +17,6 @@ macro_rules! function {
 
 pub use function;
 
-
-
 pub struct FunctionArgs(pub String);
 
 pub struct Function {
@@ -35,8 +31,6 @@ pub struct FunctionInput {
     pub arguments: String,
 }
 
-
-
 impl Function {
     pub fn run(&self, gpt: &ChatGPT, values: FunctionArgs) -> Result<String> {
         (self.function)(gpt, values)
@@ -49,9 +43,7 @@ impl FunctionArgs {
     }
 }
 
-
-
-mod println;
+mod print;
 mod exec;
 mod get_dir_list;
 mod get_dir_tree;
@@ -60,10 +52,8 @@ mod write_file;
 
 lazy_static! {
     pub static ref FUNCTIONS: Vec<&'static Function> = vec![
-        &println::FUNCTION_PRINTLN,
+        &print::FUNCTION_PRINTLN,
         &exec::FUNCTION_EXEC,
-        &get_dir_list::FUNCTION_GET_LIST_DIR,
-        &get_dir_tree::FUNCTION_GET_TREE_DIR,
         &read_file::FUNCTION_READ_FILE,
         &write_file::FUNCTION_WRITE_FILE,
     ];

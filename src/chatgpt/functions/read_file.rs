@@ -31,6 +31,7 @@ lazy_static! {
         }),
         |_chatgpt, arguments| {
             let args: Args = arguments.parse()?;
+            
             let (content, _line, tokens) = FilePath::new(&args.path)
                 .map_err(|e| Error::ExecuteFunction(e.to_string()))?
                 .read_file()

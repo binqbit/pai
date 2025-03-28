@@ -1,9 +1,16 @@
 use crate::utils::FilePath;
 
-
 impl FilePath {
     pub fn config() -> FilePath {
         FilePath::exec().join("config")
+    }
+
+    pub fn temp() -> FilePath {
+        FilePath::exec().join("temp")
+    }
+
+    pub fn scripts() -> FilePath {
+        FilePath::exec().join("scripts")
     }
 }
 

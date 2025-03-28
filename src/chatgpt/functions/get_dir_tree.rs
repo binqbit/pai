@@ -36,6 +36,7 @@ lazy_static! {
             
             let tree = ProjectDir::new().tree(&args.path, true)
                 .map_err(|e| Error::ExecuteFunction(e.to_string()))?;
+            
             Ok(tree)
         }
     );

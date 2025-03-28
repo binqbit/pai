@@ -8,5 +8,5 @@ impl FilePath {
 
 lazy_static! {
     pub static ref SUGGESTIONS: String = FilePath::prompts().join("suggestions.txt").read_file().expect("Failed to load suggestions prompt file");
-    pub static ref COMMANDS: String = FilePath::prompts().join("commands.txt").read_file().expect("Failed to load commands prompt file");
+    pub static ref ASSISTANT: String = FilePath::prompts().join("assistant.txt").read_file().expect("Failed to load assistant prompt file");
 }

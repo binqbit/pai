@@ -10,9 +10,9 @@ struct Args {
 
 lazy_static! {
     pub static ref FUNCTION_GET_LIST_DIR: Function = function!(
-        "get_dir_list".to_owned(),
+        "get_list_dir".to_owned(),
         json!({
-            "name": "get_dir_list",
+            "name": "get_list_dir",
             "description": "Get a list of directories",
             "strict": true,
             "parameters": {
@@ -31,12 +31,19 @@ lazy_static! {
         }),
         |_chatgpt, arguments| {
             let args: Args = arguments.parse()?;
+
             let dirs = FilePath::new(&args.path)
                 .map_err(|e| Error::ExecuteFunction(e.to_string()))?
                 .read_dir()
                 .map_err(|e| Error::ExecuteFunction(e.to_string()))?;
 
-            println!("[get_dir_list]('{}'): {}", args.path, dirs.join(", "));
+            let list_dirs = dirs
+                .iter()
+                .map(|dir| format!("'{dir}'"))
+                .collect::<Vec<String>>()
+                .join(", ");
+
+            println!("[get_list_dir]('{}'): {}", args.path, list_dirs);
 
             Ok(serde_json::to_string(&dirs).unwrap())
         }

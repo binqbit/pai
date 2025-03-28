@@ -1,7 +1,6 @@
 use std::{process::Command, thread};
 
-use crate::{chatgpt::ChatGPT, terminal::{colorize_command, colorize_logs}};
-
+use crate::{chatgpt::ChatGPT, terminal::{colorize_command, colorize_logs}, utils::print_markdown};
 
 pub fn exec(commands: Vec<String>) {
     let thread_handle = thread::spawn(move || {
@@ -40,7 +39,7 @@ pub fn exec(commands: Vec<String>) {
 pub fn run_task(task: String) {
     match ChatGPT::for_assistant().run_assistant(task) {
         Ok(text) => {
-            println!("{}", text);
+            print_markdown(&text);
         },
         Err(err) => {
             eprintln!("Error: {err:?}");

@@ -1,37 +1,39 @@
 use serde::{Serialize, Deserialize};
 use serde_json::json;
 
-use crate::{chatgpt::Function, terminal::colorize_logs};
+use crate::{chatgpt::Function, utils::print_markdown};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 struct Args {
-    text: String,
+    content: String,
 }
 
 lazy_static! {
     pub static ref FUNCTION_PRINTLN: Function = function!(
-        "println".to_owned(),
+        "print".to_owned(),
         json!({
-            "name": "println",
-            "description": "Prints a message to the console",
+            "name": "print",
+            "description": "Print markdown formatted message to terminal",
             "strict": true,
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "text": {
+                    "content": {
                         "type": "string",
-                        "description": "The text to print"
-                    }
+                        "description": "The content to print in markdown format"
+                    },
                 },
                 "additionalProperties": false,
                 "required": [
-                    "text"
+                    "content"
                 ]
             }
         }),
         |_chatgpt, arguments| {
             let args: Args = arguments.parse()?;
-            println!("{}", colorize_logs(&args.text));
+
+            print_markdown(&args.content);
+
             Ok(String::from("Success"))
         }
     );

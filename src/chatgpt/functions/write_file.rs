@@ -51,7 +51,7 @@ lazy_static! {
             };
             println!("[write_file]('{}', {})", args.path, content_size);
 
-            Ok(format!("Content written to {}", args.path))
+            Ok(String::from("Success"))
         }
     );
 }

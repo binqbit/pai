@@ -1,5 +1,4 @@
-use utils::{PAI_GPT_MODEL, PAI_VERSION};
-
+use utils::GPT_MODEL;
 
 #[macro_use]
 extern crate lazy_static;
@@ -23,8 +22,8 @@ fn main() {
             return;
         },
         Some("--version") | Some("-v") => {
-            println!("pai version: {PAI_VERSION}");
-            println!("gpt model: {PAI_GPT_MODEL}");
+            println!("pai version: {}", env!("CARGO_PKG_VERSION"));
+            println!("gpt model: {}", GPT_MODEL);
             return;
         },
         Some("--help") | Some("-h") => {
